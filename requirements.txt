@@ -1,0 +1,6 @@
+fastapi[all]==0.112.2
+uvicorn[standard]==0.15.0
+pydantic==2.8.2
+pytest==7.4.4
+#-e git+https://__##GIT_TOKEN##__@github.com/toposoid/toposoid-python-lib.git@feature#egg=ToposoidCommon
+

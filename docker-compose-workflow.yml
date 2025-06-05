@@ -1,0 +1,8 @@
+version: '3'
+services:
+  toposoid-language-detector-web:
+    image: toposoid-language-detector-web:0.6-SNAPSHOT
+    tty: true
+    environment:
+    ports:
+      - 9017:9017
