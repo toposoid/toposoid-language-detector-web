@@ -2,6 +2,7 @@ FROM python:3.10.13
 
 WORKDIR /app
 ARG TARGET_BRANCH
+ARG GIT_TOKEN
 ENV DEPLOYMENT=local
 
 RUN cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
