@@ -13,7 +13,9 @@ RUN apt-get update && apt-get upgrade -y \
 && cd toposoid-language-detector-web \
 && git fetch origin ${TARGET_BRANCH} \
 && git checkout ${TARGET_BRANCH} \
-&& pip install --no-cache-dir --trusted-host pypi.python.org -r requirements.txt
+&& sed -i s/__##GIT_TOKEN##__/${GIT_TOKEN}/g requirements.txt \
+&& pip install --no-cache-dir --trusted-host pypi.python.org -r requirements.txt \
+&& rm -f requirements.txt
 
 COPY ./docker-entrypoint.sh /app/
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
