@@ -13,7 +13,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
  '''
-from ToposoidCommon.model import TransversalState, Knowledge, PropositionRelation, KnowledgeSentenceSet
+from ToposoidCommon import SingleSentence
+from ToposoidCommon.model import TransversalState, Knowledge, PropositionRelation, KnowledgeSentenceSet, DetectedLanguage
 from fastapi.testclient import TestClient
 from api import app
 import pytest
@@ -25,8 +26,31 @@ class TestToposoidLanguageDetectorWeb(object):
 
     client = TestClient(app)
     transversalState = str(jsonable_encoder(TransversalState(userId="test-user", username="guest", roleId=0, csrfToken = "")))
-        
-    def test_detectLanguage(self): 
+
+    def test_detectLanguage(self):         
+        response = self.client.post("/detectLanguage",
+                            headers={"Content-Type": "application/json", "X_TOPOSOID_TRANSVERSAL_STATE": self.transversalState},
+                            json=jsonable_encoder(SingleSentence(sentence="これは日本語です。") ))
+        assert response.status_code == 200
+        detectedLanguage = DetectedLanguage.parse_obj(response.json())
+        assert detectedLanguage.lang == "ja_JP"
+
+        response = self.client.post("/detectLanguage",
+                            headers={"Content-Type": "application/json", "X_TOPOSOID_TRANSVERSAL_STATE": self.transversalState},
+                            json=jsonable_encoder(SingleSentence(sentence="This is English.") ))
+        assert response.status_code == 200
+        detectedLanguage = DetectedLanguage.parse_obj(response.json())
+        assert detectedLanguage.lang == "en_US"
+
+        response = self.client.post("/detectLanguage",
+                            headers={"Content-Type": "application/json", "X_TOPOSOID_TRANSVERSAL_STATE": self.transversalState},
+                            json=jsonable_encoder(SingleSentence(sentence="è questo italiano?") ))
+        assert response.status_code == 200
+        detectedLanguage = DetectedLanguage.parse_obj(response.json())
+        assert detectedLanguage.lang == ""
+
+
+    def test_detectLanguages(self): 
         knowledge1 = Knowledge(sentence = "これはテストの前提1です。", lang = "", extentInfoJson = "{}")
         knowledge2 = Knowledge(sentence = "This is Premise2.", lang = "", extentInfoJson = "{}")
 
@@ -41,7 +65,7 @@ class TestToposoidLanguageDetectorWeb(object):
             claimLogicRelation = [PropositionRelation(operator = "OR", sourceIndex = 0, destinationIndex = 1), PropositionRelation(operator = "OR", sourceIndex = 0, destinationIndex = 2)]
         )
 
-        response = self.client.post("/detectLanguage",
+        response = self.client.post("/detectLanguages",
                             headers={"Content-Type": "application/json", "X_TOPOSOID_TRANSVERSAL_STATE": self.transversalState},
                             json=jsonable_encoder(knowledgeSentenceSet))
         assert response.status_code == 200

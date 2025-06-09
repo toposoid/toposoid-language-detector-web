@@ -15,7 +15,7 @@
  '''
 
 from fastapi import FastAPI, Header
-from ToposoidCommon.model import TransversalState, DetectedLanguage, KnowledgeSentenceSet, Knowledge
+from ToposoidCommon.model import TransversalState, DetectedLanguage, KnowledgeSentenceSet, Knowledge, SingleSentence
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
@@ -42,10 +42,24 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-
 @app.post("/detectLanguage",
           summary='Automatically detect the language of a text')
-def detectLanguage(knowledgeSentenceSet:KnowledgeSentenceSet, X_TOPOSOID_TRANSVERSAL_STATE: Optional[str] = Header(None, convert_underscores=False)):
+def detectLanguage(singleSentence:SingleSentence, X_TOPOSOID_TRANSVERSAL_STATE: Optional[str] = Header(None, convert_underscores=False)):
+    transversalState = TransversalState.parse_raw(X_TOPOSOID_TRANSVERSAL_STATE.replace("'", "\""))
+    try:        
+        detectedLanguage:DetectedLanguage = tc.detectLangage(singleSentence.sentence)
+        response = JSONResponse(content=jsonable_encoder(detectedLanguage))        
+        LOG.info(f"Input:{singleSentence.sentence}, Output:{detectedLanguage.lang}", transversalState) 
+        LOG.info(f"Lang Detection completed.", transversalState)
+        return response
+    except Exception as e:
+        LOG.error(traceback.format_exc(), transversalState)
+        return JSONResponse(content=jsonable_encoder(DetectedLanguage(lang="")))
+
+
+@app.post("/detectLanguages",
+          summary='Automatically detect the language of a text')
+def detectLanguages(knowledgeSentenceSet:KnowledgeSentenceSet, X_TOPOSOID_TRANSVERSAL_STATE: Optional[str] = Header(None, convert_underscores=False)):
     transversalState = TransversalState.parse_raw(X_TOPOSOID_TRANSVERSAL_STATE.replace("'", "\""))
     try:        
         knowledgeSentenceSet.premiseList = convertKnowledgeList(knowledgeSentenceSet.premiseList, transversalState)
