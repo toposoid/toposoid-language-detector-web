@@ -13,11 +13,10 @@
   See the License for the specific language governing permissions and
   limitations under the License.
  '''
-from ToposoidCommon import StatusInfo
+from ToposoidCommon.model import TransversalState, Knowledge, PropositionRelation, KnowledgeSentenceSet
 from fastapi.testclient import TestClient
 from api import app
 import pytest
-from ToposoidCommon.model import TransversalState, DetectedLanguage
 from time import sleep
 from fastapi.encoders import jsonable_encoder
 from pydantic import parse_obj_as
@@ -27,26 +26,31 @@ class TestToposoidLanguageDetectorWeb(object):
     client = TestClient(app)
     transversalState = str(jsonable_encoder(TransversalState(userId="test-user", username="guest", roleId=0, csrfToken = "")))
         
-    def test_detectLanguage(self):   
-        response = self.client.post("/detectLanguage",
-                            headers={"Content-Type": "application/json", "X_TOPOSOID_TRANSVERSAL_STATE": self.transversalState},
-                            json={"sentence": "これは日本語ですか？"})
-        assert response.status_code == 200
-        detectedLanguage = DetectedLanguage.parse_obj(response.json())
-        assert detectedLanguage.lang == "ja_JP"
+    def test_detectLanguage(self): 
+        knowledge1 = Knowledge(sentence = "これはテストの前提1です。", lang = "", extentInfoJson = "{}")
+        knowledge2 = Knowledge(sentence = "This is Premise2.", lang = "", extentInfoJson = "{}")
 
-    def test_detectLanguage2(self):      
-        response = self.client.post("/detectLanguage",
-                            headers={"Content-Type": "application/json", "X_TOPOSOID_TRANSVERSAL_STATE": self.transversalState},
-                            json={"sentence": "Is This English?"})
-        assert response.status_code == 200
-        detectedLanguage = DetectedLanguage.parse_obj(response.json())
-        assert detectedLanguage.lang == "en_US"
+        knowledge3 = Knowledge(sentence = "これはテストの主張1です。", lang = "", extentInfoJson = "{}")
+        knowledge4 = Knowledge(sentence = "This is Claim2", lang = "", extentInfoJson = "{}")
+        knowledge5 = Knowledge(sentence = "è questo italiano?", lang = "", extentInfoJson = "{}")
 
-    def test_detectLanguage3(self):         
+        knowledgeSentenceSet = KnowledgeSentenceSet(
+            premiseList = [knowledge1, knowledge2],
+            premiseLogicRelation = [PropositionRelation(operator = "AND", sourceIndex = 0, destinationIndex = 1)],
+            claimList = [knowledge3, knowledge4, knowledge5],
+            claimLogicRelation = [PropositionRelation(operator = "OR", sourceIndex = 0, destinationIndex = 1), PropositionRelation(operator = "OR", sourceIndex = 0, destinationIndex = 2)]
+        )
+
         response = self.client.post("/detectLanguage",
                             headers={"Content-Type": "application/json", "X_TOPOSOID_TRANSVERSAL_STATE": self.transversalState},
-                            json={"sentence": "è questo italiano?"})
+                            json=jsonable_encoder(knowledgeSentenceSet))
         assert response.status_code == 200
-        detectedLanguage = DetectedLanguage.parse_obj(response.json())
-        assert  detectedLanguage.lang == ""        
+        resKnowledgeSentenceSet = KnowledgeSentenceSet.parse_obj(response.json())
+        assert resKnowledgeSentenceSet.premiseList[0].lang == "ja_JP"
+        assert resKnowledgeSentenceSet.premiseList[1].lang == "en_US"
+        
+        assert resKnowledgeSentenceSet.claimList[0].lang == "ja_JP"
+        assert resKnowledgeSentenceSet.claimList[1].lang == "en_US"
+        assert resKnowledgeSentenceSet.claimList[2].lang == ""
+
+    

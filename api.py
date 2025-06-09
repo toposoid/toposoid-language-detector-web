@@ -15,12 +15,12 @@
  '''
 
 from fastapi import FastAPI, Header
-from ToposoidCommon.model import StatusInfo, TransversalState, SingleSentence, DetectedLanguage
+from ToposoidCommon.model import TransversalState, DetectedLanguage, KnowledgeSentenceSet, Knowledge
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from typing import Optional
-
+from typing import List
 import traceback
 
 from middleware import ErrorHandlingMiddleware
@@ -45,17 +45,27 @@ app.add_middleware(
 
 @app.post("/detectLanguage",
           summary='Automatically detect the language of a text')
-def detectLanguage(singleSentence:SingleSentence, X_TOPOSOID_TRANSVERSAL_STATE: Optional[str] = Header(None, convert_underscores=False)):
+def detectLanguage(knowledgeSentenceSet:KnowledgeSentenceSet, X_TOPOSOID_TRANSVERSAL_STATE: Optional[str] = Header(None, convert_underscores=False)):
     transversalState = TransversalState.parse_raw(X_TOPOSOID_TRANSVERSAL_STATE.replace("'", "\""))
-    try:
-        LOG.info(f"Input:{singleSentence.sentence}", transversalState)           
-        detectedLanguage:DetectedLanguage = tc.detectLangage(singleSentence.sentence) 
-        response = JSONResponse(content=jsonable_encoder(detectedLanguage))
-        LOG.info(f"Lang Detection completed.[lang:{detectedLanguage.lang}]", transversalState)
+    try:        
+        knowledgeSentenceSet.premiseList = convertKnowledgeList(knowledgeSentenceSet.premiseList, transversalState)
+        knowledgeSentenceSet.claimList = convertKnowledgeList(knowledgeSentenceSet.claimList, transversalState)        
+        response = JSONResponse(content=jsonable_encoder(knowledgeSentenceSet))
+        LOG.info(f"Lang Detection completed.", transversalState)
         return response
     except Exception as e:
         LOG.error(traceback.format_exc(), transversalState)
-        return JSONResponse(content=jsonable_encoder(DetectedLanguage(lang="")))
+        return JSONResponse(content=jsonable_encoder(knowledgeSentenceSet))
 
-      
+
+def detect(knowledge:Knowledge, transversalState):   
+    detectedLanguage:DetectedLanguage = tc.detectLangage(knowledge.sentence)
+    knowledge.lang = detectedLanguage.lang
+    LOG.info(f"Input:{knowledge.sentence}, Output:{knowledge.lang}", transversalState)     
+    return knowledge
+
+def convertKnowledgeList(knowledges:List[str], transversalState):
+    return list(map(lambda x: detect(x, transversalState), knowledges))
+
+
 
