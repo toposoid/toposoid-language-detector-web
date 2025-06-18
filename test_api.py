@@ -49,6 +49,15 @@ class TestToposoidLanguageDetectorWeb(object):
         detectedLanguage = DetectedLanguage.parse_obj(response.json())
         assert detectedLanguage.lang == ""
 
+        
+        response = self.client.post("/detectLanguage",
+                            headers={"Content-Type": "application/json", "X_TOPOSOID_TRANSVERSAL_STATE": self.transversalState},
+                            json=jsonable_encoder(SingleSentence(sentence="NO_REFERENCE_5d9afee2-4c10-11f0-9f26-acde48001122_1") ))
+        assert response.status_code == 200
+        detectedLanguage = DetectedLanguage.parse_obj(response.json())
+        assert detectedLanguage.lang == "@@_#1"
+        
+
 
     def test_detectLanguages(self): 
         knowledge1 = Knowledge(sentence = "これはテストの前提1です。", lang = "", extentInfoJson = "{}")
