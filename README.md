@@ -21,7 +21,8 @@ docker-compose up
 The first startup takes a long time until docker pull finishes.
 ## Usage
 ```bash
-
+#ex
+curl -X POST -H "Content-Type: application/json" -H 'X_TOPOSOID_TRANSVERSAst-user", "username":"guest", "roleId":0, "csrfToken":""}' -d '{"sentence": "これは日本語です。"}'  http://localhost:9017/detectLanguage
 ```
 
 ## Note
