@@ -21,7 +21,7 @@ jobs:
         run: |
             cd ${GITHUB_WORKSPACE} && cd ../
             cd ./${{ env.PJ_REPO }}  
-            docker build --build-arg TARGET_BRANCH=${{ env.PJ_BRANCH }} --build-arg GIT_TOKEN=${{ secrets.GIT_TOKEN }} --tag ${{ env.PJ_REPO }}:${{ env.PJ_VERSION }} -f Dockerfile-workflow .
+            docker build --build-arg TARGET_BRANCH=${{ env.PJ_BRANCH }} --tag ${{ env.PJ_REPO }}:${{ env.PJ_VERSION }} -f Dockerfile-workflow .
             docker compose -f docker-compose-workflow.yml up -d                        
             docker compose logs
             docker compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && pytest -v"            
@@ -30,11 +30,11 @@ jobs:
         uses: crazy-max/ghaction-docker-meta@v3
         with:
           images: toposoid/${{ env.PJ_REPO }}:${{ env.PJ_VERSION }}
-      - name: Login to GHCR
+      - name: Login to CR
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.GHCR_USER }}
-          password: ${{ secrets.GHCR_TOKEN }}
+          username: toposoid
+          password: ${{ secrets.CR_TOKEN }}
       - name: Build And Push Docker Image
         uses: docker/build-push-action@v3
         with:
@@ -42,5 +42,4 @@ jobs:
           push: true
           tags: toposoid/${{ env.PJ_REPO }}:${{ env.PJ_VERSION }}
           build-args: |
-            TARGET_BRANCH=${{ env.PJ_BRANCH }}
-            GIT_TOKEN=${{ secrets.GIT_TOKEN }}
+            TARGET_BRANCH=${{ env.PJ_BRANCH }}            
