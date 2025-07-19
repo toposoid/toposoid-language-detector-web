@@ -1,7 +1,7 @@
 version: '3.4'
 services:
   toposoid-language-detector-web:
-    image: toposoid/toposoid-language-detector-web:0.6-SNAPSHOT
+    image: toposoid/toposoid-language-detector-web:0.6
     ports:
       - 9017:9017
 
