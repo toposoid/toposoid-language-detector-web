@@ -3,6 +3,7 @@ This is a WEB API that works as a microservice within the Toposoid project.
 Toposoid is a knowledge base construction platform.(see [Toposoid　Root Project](https://github.com/toposoid/toposoid.git))
 This microservice get information from Redis in-memory database. outputs the result in JSON.
 
+[![Test And Build](https://github.com/toposoid/toposoid-language-detector-web/actions/workflows/action.yml/badge.svg)](https://github.com/toposoid/toposoid-language-detector-web/actions/workflows/action.yml)
 
 ## Dependency in toposoid Project
 
