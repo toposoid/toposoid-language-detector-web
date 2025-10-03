@@ -8,7 +8,7 @@ env:
   PJ_ACTOR: toposoid
   PJ_REPO: toposoid-language-detector-web
   PJ_BRANCH: feature
-  PJ_VERSION: 0.6
+  PJ_VERSION: 0.7-SNAPSHOT
 jobs:
   unit-test_toposoid-language-detector-web:
     runs-on: ubuntu-22.04
@@ -20,11 +20,11 @@ jobs:
       - name: Execute tests
         run: |
             cd ${GITHUB_WORKSPACE} && cd ../
-            cd ./${{ env.PJ_REPO }}  
+            cd ./${{ env.PJ_REPO }}
             docker build --build-arg TARGET_BRANCH=${{ env.PJ_BRANCH }} --tag ${{ env.PJ_REPO }}:${{ env.PJ_VERSION }} -f Dockerfile-workflow .
-            docker compose -f docker-compose-workflow.yml up -d                        
+            docker compose -f docker-compose-workflow.yml up -d
             docker compose logs
-            docker compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && pytest -v"            
+            docker compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && pytest -v"
       - name: Docker meta
         id: docker_meta
         uses: crazy-max/ghaction-docker-meta@v3
@@ -42,4 +42,4 @@ jobs:
           push: true
           tags: toposoid/${{ env.PJ_REPO }}:${{ env.PJ_VERSION }}
           build-args: |
-            TARGET_BRANCH=${{ env.PJ_BRANCH }}            
+            TARGET_BRANCH=${{ env.PJ_BRANCH }}
