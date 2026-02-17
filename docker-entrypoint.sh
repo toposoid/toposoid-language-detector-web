@@ -1,3 +1,4 @@
 #!/bin/bash
 cd /app/toposoid-language-detector-web
-uvicorn api:app --reload --host 0.0.0.0 --port 9017
+source /root/.local/bin/env
+uv run uvicorn api:app --reload --host 0.0.0.0 --port 9017
