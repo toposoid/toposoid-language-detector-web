@@ -198,3 +198,7 @@ cython_debug/
 logs/*
 !logs/.gitkeep
 src/
+.devcontainer
+docker-compose-dev.yml
+pyproject.toml
+uv.lock
